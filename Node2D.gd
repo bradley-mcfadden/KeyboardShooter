@@ -2,15 +2,24 @@ extends Node2D
 
 onready var current_word:String = ""
 onready var cw_position:int = 0
+onready var enemy_dict:Dictionary
 onready var dict:Array
 onready var words_on_screen:Array
+onready var Enemy:PackedScene = preload("res://Enemy.tscn")
+var WIDTH:int = ProjectSettings.get_setting("display/window/size/width")
+var HEIGHT:int = ProjectSettings.get_setting("display/window/size/height")
+#warning-ignore:integer_division
+#warning-ignore:integer_division
+var CENTER:Vector2 = Vector2(WIDTH / 2, HEIGHT / 2)
 # Declare member variables here. Examples:
 # var a = 2
 # var b = "text"
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	print(CENTER)
 	randomize()
+	enemy_dict = {}
 	words_on_screen = []
 	dict = []
 	var dict_file = File.new()
@@ -34,6 +43,7 @@ func _input(event):
 		return
 	if event.is_action_pressed("backspace"):
 		print("WORD ESCAPED")
+		enemy_dict[current_word].set_text(current_word)
 		cw_position = 0
 		current_word = ""
 	elif event is InputEventKey:
@@ -48,7 +58,7 @@ func _input(event):
 			if index == -1:
 				return
 			words_on_screen.remove(index)
-			#print(current_word)
+			enemy_dict[current_word].free()
 			print("WORD CLEARED")
 			current_word = ""
 			cw_position = 0
@@ -58,6 +68,8 @@ func _input(event):
 			#print("Correct")
 			cw_position += 1
 			print(current_word.substr(cw_position, current_word.length() - cw_position))
+			enemy_dict[current_word].set_text(current_word.substr(cw_position, 
+					current_word.length() - cw_position))
 
 
 func insert_s(arr:Array, element):
@@ -92,9 +104,21 @@ func find_current_word(arr:Array, ch:String) -> String:
 	return string 
 
 
+func rand_point(center:Vector2, radius:int)->Vector2:
+	var theta = rand_range(-1000, 1000)
+	
+	var x = center + Vector2(radius * cos(theta), radius * sin(theta))
+	print(x)
+	return x
 
 
 func _on_Timer_timeout():
-	insert_s(words_on_screen, dict[randi() % dict.size()])
-	#for i in range(words_on_screen.size()):
+	var new_word:String = dict[randi() % dict.size()]
+	while(enemy_dict.has(new_word)):
+		new_word = dict[randi() % dict.size()]
+	insert_s(words_on_screen, new_word)
+	enemy_dict[new_word] = Enemy.instance()
+	# print(rand_point(CENTER, 200))
+	enemy_dict[new_word].init(CENTER, new_word, rand_point(CENTER, 400))
+	add_child(enemy_dict[new_word])
 	print(words_on_screen)
