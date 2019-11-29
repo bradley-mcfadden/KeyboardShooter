@@ -40,7 +40,7 @@ func _ready():
 			#print("in loop")
 				var s:String = String(dict_file.get_line())
 				# print(s)
-				dict.push_back(s.to_lower())
+				dict.push_back(s.strip_edges())
 			dict_file.close()
 			file_name = dir.get_next()
 	#print(dict.size())
@@ -55,7 +55,7 @@ func _input(event):
 	if event.is_echo():
 		return
 		
-	if health <= 0:
+	if $ProgressBar.value <= 0:
 		return
 		
 	if event.is_action_pressed("backspace"):
@@ -89,7 +89,7 @@ func _input(event):
 			#print("Correct")
 			cw_position += 1
 			# print(current_word.substr(cw_position, current_word.length() - cw_position))
-			if health > 0:
+			if $ProgressBar.value:
 				enemy_dict[current_word].set_text(current_word.substr(cw_position, 
 					current_word.length() - cw_position))
 
@@ -179,4 +179,5 @@ func _on_Button_pressed():
 	$Button.visible = false
 	cw_position = 0
 	current_word = ""
+	_on_Timer_timeout()
 	$BaseHealth.text = "Score"
